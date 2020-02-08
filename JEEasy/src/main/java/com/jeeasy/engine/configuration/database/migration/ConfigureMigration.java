@@ -62,6 +62,8 @@ public class ConfigureMigration implements IDependencyBean {
 				
 				fluentConfiguration.dataSource(dataSource);
 				fluentConfiguration.baselineOnMigrate(true);
+				fluentConfiguration.outOfOrder(true);
+				fluentConfiguration.batch(true);
 				
 				ArrayList<String> locations = new ArrayList<>();
 				

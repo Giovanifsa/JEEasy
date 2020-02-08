@@ -1,4 +1,4 @@
-package com.jeeasy.engine.translations;
+ package com.jeeasy.engine.translations;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
