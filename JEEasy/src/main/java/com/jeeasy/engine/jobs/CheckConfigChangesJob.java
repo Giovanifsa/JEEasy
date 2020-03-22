@@ -12,6 +12,7 @@ public class CheckConfigChangesJob implements ITimedJob {
 	@Override
 	public ScheduleExpression getSchedule() {
 		ScheduleExpression schedule = new ScheduleExpression();
+		schedule.hour("*");
 		schedule.minute("*");
 		
 		return schedule;

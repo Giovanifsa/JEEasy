@@ -98,7 +98,7 @@ public abstract class AbstractEAO<E extends AbstractEntity> {
 		return Optional.ofNullable(getSingleResult(query));
 	}
 	
-	public List<E> getResultList(TypedQuery<E> query) {
+	public <T> List<T> getResultList(TypedQuery<T> query) {
 		return query.getResultList();
 	}
 	

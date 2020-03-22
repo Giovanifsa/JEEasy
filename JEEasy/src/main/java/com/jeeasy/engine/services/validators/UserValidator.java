@@ -9,6 +9,7 @@ import com.jeeasy.engine.exceptions.codes.EnumValidationExceptionCodes;
 import com.jeeasy.engine.settings.UserPasswordMinLength;
 import com.jeeasy.engine.translations.EnumPhrasesTranslations;
 import com.jeeasy.engine.translations.EnumValidationsTranslations;
+import com.jeeasy.engine.utils.data.BooleanUtils;
 
 public class UserValidator extends AbstractCRUDValidator<User> {
 	@Inject
@@ -36,6 +37,11 @@ public class UserValidator extends AbstractCRUDValidator<User> {
 		checkPasswordLength(entity);
 	}
 	
+	@Override
+	public void validateDelete(User entity) {
+		checkSystemUser(entity);
+	}
+	
 	public void checkConflictingUsers(User entity) {
 		if (eao.findByUserName(entity.getUserName()) != null) {
 			throw new ValidationRuntimeException(
@@ -59,6 +65,14 @@ public class UserValidator extends AbstractCRUDValidator<User> {
 						getTranslator().translateForContextLanguage(EnumPhrasesTranslations.USER_PASSWORD),
 						passwordMinLengthSetting.getValue()), 
 					EnumValidationExceptionCodes.USER_PASSWORD_LENGTH_TOO_BIG);
+		}
+	}
+	
+	public void checkSystemUser(User entity) {
+		if (BooleanUtils.isTrue(entity.getSystemUser())) {
+			throw new ValidationRuntimeException(
+					getTranslator().translateForContextLanguage(EnumValidationsTranslations.CANNOT_DELETE_SYSTEM_USER, entity.getUserName()), 
+					EnumValidationExceptionCodes.CANNOT_DELETE_SYSTEM_USER);
 		}
 	}
 }

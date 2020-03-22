@@ -13,7 +13,6 @@ import javax.persistence.ManyToMany;
 public class UserRolePermission extends AbstractEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "idUserRolePermission", nullable = false, unique = true)
 	private Long idUserRolePermission;
 	
 	@Column(name = "permissionName", nullable = false, length = 64)

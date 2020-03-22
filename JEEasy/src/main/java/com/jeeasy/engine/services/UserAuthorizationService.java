@@ -47,7 +47,7 @@ public class UserAuthorizationService extends AbstractService<UserAuthorization,
 		User user = userEAO.findByUserName(userToClean.getUserName());
 		getValidator().validateUserCleanup(user);
 		
-		getEAO().deleteAllUserAuthorizationTokens(user);
+		delete(getEAO().findUserAuthorizationsByUser(user));
 	}
 	
 	public UserAuthorization login(UserLoginBean loginBean) {
@@ -111,11 +111,18 @@ public class UserAuthorizationService extends AbstractService<UserAuthorization,
 	}
 	
 	public void cleanupExpiredAuthorizations() {
-		getEAO().deleteExpiredAuthorizations();
+		delete(getEAO().findExpiredUserAuthorizations());
 	}
 	
 	@Override
 	public List<Class<? extends IDependencyBean>> getDependencies() {
 		return Arrays.asList(UserService.class);
+	}
+	
+	@Override
+	protected void onDependencyServicePreDelete(Class<? extends AbstractService<?, ?, ?, ?>> dependencyService, Object deletedEntity) {
+		if (UserService.class.equals(dependencyService)) {
+			delete(getEAO().findUserAuthorizationsByUser((User) deletedEntity));
+		}
 	}
 }

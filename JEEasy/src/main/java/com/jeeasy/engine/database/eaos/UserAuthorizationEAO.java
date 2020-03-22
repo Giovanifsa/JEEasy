@@ -1,8 +1,8 @@
 package com.jeeasy.engine.database.eaos;
 
 import java.util.Date;
+import java.util.List;
 
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import com.jeeasy.engine.database.entities.User;
@@ -47,29 +47,28 @@ public class UserAuthorizationEAO extends AbstractListingEAO<UserAuthorization, 
 		return getSingleResult(query);
 	}
 	
-	public void deleteAllUserAuthorizationTokens(User user) {
+	public List<Long> findUserAuthorizationsByUser(User user) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(" DELETE ");
+		sb.append(" SELECT ua.idUserAuthorization ");
 		sb.append(" FROM ").append(UserAuthorization.ENTITY_USERAUTHORIZATION).append(" ua ");
 		sb.append(" WHERE ");
 		sb.append("		ua.").append(UserAuthorization.ATTRIBUTE_USER).append(" = :user ");
 		
-		Query query = createQuery(sb.toString());
+		TypedQuery<Long> query = createTypedQuery(sb, Long.class);
 		query.setParameter("user", user);
 		
-		query.executeUpdate();
+		return getResultList(query);
 	}
 	
-	public void deleteExpiredAuthorizations() {
+	public List<Long> findExpiredUserAuthorizations() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(" DELETE ");
-		sb.append(" FROM ");
-		sb.append(" ").append(UserAuthorization.ENTITY_USERAUTHORIZATION).append(" ua ");
+		sb.append(" SELECT ua.idUserAuthorization ");
+		sb.append(" FROM ").append(UserAuthorization.ENTITY_USERAUTHORIZATION).append(" ua ");
 		sb.append(" WHERE ua.").append(UserAuthorization.ATTRIBUTE_EXPIRATIONDATE).append(" < :curDate ");
 		
-		Query query = createQuery(sb.toString());
+		TypedQuery<Long> query = createTypedQuery(sb, Long.class);
 		query.setParameter("curDate", new Date());
 		
-		query.executeUpdate();
+		return getResultList(query);
 	}
 }

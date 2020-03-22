@@ -6,6 +6,7 @@ public enum EnumValidationExceptionCodes implements IEnumExceptionCode {
 	USER_ALREADY_EXISTS(1),
 	USER_PASSWORD_LENGTH_TOO_SMALL(2),
 	USER_PASSWORD_LENGTH_TOO_BIG(3),
+	CANNOT_DELETE_SYSTEM_USER(4),
 	
 	;
 

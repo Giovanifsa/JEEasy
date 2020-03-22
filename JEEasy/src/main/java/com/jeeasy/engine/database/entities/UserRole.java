@@ -15,7 +15,6 @@ import javax.persistence.ManyToMany;
 public class UserRole extends AbstractEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "idUserRole", nullable = false, unique = true)
 	private Long idUserRole;
 	
 	@Column(name = "roleName", nullable = false, length = 45)

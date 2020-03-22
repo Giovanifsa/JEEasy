@@ -9,6 +9,7 @@ public enum EnumValidationsTranslations implements IEnumTranslations {
 	
 	USER_NOT_FOUND("USER_NOT_FOUND", "User not found."),
 	USER_ALREADY_EXISTS("USER_ALREADY_EXISTS", "The User {0} already exists."),
+	CANNOT_DELETE_SYSTEM_USER("CANNOT_DELETE_SYSTEM_USER", "The User \"{0}\" was created by the system and cannot be deleted."),
 	
 	USER_AUTHORIZATION_INVALID_CREDENTIALS("USER_AUTHORIZATION_INVALID_CREDENTIALS", "Provided credentials is invalid."),
 	USER_AUTHORIZATION_TOKENS_LIMIT_REACHED("MAX_USER_AUTH_TOKENS_LIMITE_REACHED", "Maximum user login limit reached."),

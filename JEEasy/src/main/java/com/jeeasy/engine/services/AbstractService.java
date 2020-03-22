@@ -19,6 +19,7 @@ import com.jeeasy.engine.services.validators.AbstractCRUDValidator;
 import com.jeeasy.engine.translations.EnumFailuresTranslations;
 import com.jeeasy.engine.translations.Translator;
 import com.jeeasy.engine.utils.cdi.CDIUtils;
+import com.jeeasy.engine.utils.data.ListUtils;
 import com.jeeasy.engine.utils.dependencies.DependencyBeanUtils;
 import com.jeeasy.engine.utils.dependencies.IDependencyBean;
 import com.jeeasy.engine.utils.reflection.ClassUtils;
@@ -100,6 +101,12 @@ public abstract class AbstractService<E extends AbstractEntity, V extends Abstra
 		notifyPostDelete(entity);
 	}
 	
+	public void delete(List<Long> entityIds) {
+		for (Long id : ListUtils.newListOnNull(entityIds)) {
+			delete(id);
+		}
+	}
+	
 	public E enforceUpdateableFields(E received) {
 		try {
 			E entity = eao.find(received.getId());
@@ -159,56 +166,62 @@ public abstract class AbstractService<E extends AbstractEntity, V extends Abstra
 		return context;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void notifyPreInsert(E persisted) {
 		onPreInsert(persisted);
 		
-		iterateDependentServices((service) -> service.onDependentServicePreInsert(getClass(), persisted));
-		iterateDependingServices((service) -> service.onDependingServicePreInsert(getClass(), persisted));
+		iterateDependenciesServices((service) -> service.onServiceThatDependsOnThisPreInsert((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), persisted));
+		iterateServicesThatDependsOnThis((service) -> service.onDependencyServicePreInsert((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), persisted));
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void notifyPreUpdate(E updated) {
 		onPreUpdate(updated);
 		
-		iterateDependentServices((service) -> service.onDependentServicePreUpdate(getClass(), updated));
-		iterateDependingServices((service) -> service.onDependingServicePreUpdate(getClass(), updated));
+		iterateDependenciesServices((service) -> service.onServiceThatDependsOnThisPreUpdate((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), updated));
+		iterateServicesThatDependsOnThis((service) -> service.onDependencyServicePreUpdate((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), updated));
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void notifyPreDelete(E deleted) {
 		onPreDelete(deleted);
 		
-		iterateDependentServices((service) -> service.onDependentServicePreDelete(getClass(), deleted));
-		iterateDependingServices((service) -> service.onDependingServicePreDelete(getClass(), deleted));
+		iterateDependenciesServices((service) -> service.onServiceThatDependsOnThisPreDelete((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), deleted));
+		iterateServicesThatDependsOnThis((service) -> service.onDependencyServicePreDelete((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), deleted));
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void notifyPostInsert(E persisted) {
 		onPostInsert(persisted);
 		
-		iterateDependentServices((service) -> service.onDependentServicePostInsert(getClass(), persisted));
-		iterateDependingServices((service) -> service.onDependingServicePostInsert(getClass(), persisted));
+		iterateDependenciesServices((service) -> service.onServiceThatDependsOnThisPostInsert((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), persisted));
+		iterateServicesThatDependsOnThis((service) -> service.onDependencyServicePostInsert((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), persisted));
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void notifyPostUpdate(E updated) {
 		onPostUpdate(updated);
 		
-		iterateDependentServices((service) -> service.onDependentServicePostUpdate(getClass(), updated));
-		iterateDependingServices((service) -> service.onDependingServicePostUpdate(getClass(), updated));
+		iterateDependenciesServices((service) -> service.onServiceThatDependsOnThisPostUpdate((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), updated));
+		iterateServicesThatDependsOnThis((service) -> service.onDependencyServicePostUpdate((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), updated));
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void notifyPostDelete(E deleted) {
 		onPostDelete(deleted);
 		
-		iterateDependentServices((service) -> service.onDependentServicePostDelete(getClass(), deleted));
-		iterateDependingServices((service) -> service.onDependingServicePostDelete(getClass(), deleted));
+		iterateDependenciesServices((service) -> service.onServiceThatDependsOnThisPostDelete((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), deleted));
+		iterateServicesThatDependsOnThis((service) -> service.onDependencyServicePostDelete((Class<? extends AbstractService<?, ?, ?, ?>>) getClass(), deleted));
 	}
 	
-	private void iterateDependentServices(Consumer<AbstractService<?, ?, ?, ?>> iterator) {
-		List<Class<?>> dependings = ClassUtils.castToGenerics(DependencyBeanUtils.listDependencies(getClass()));
+	private void iterateDependenciesServices(Consumer<AbstractService<?, ?, ?, ?>> iterator) {
+		List<Class<?>> dependencies = ClassUtils.castToGenerics(DependencyBeanUtils.listDependencies(getClass()));
+		iterateDependencyServices(dependencies, iterator);
+	}
+	
+	private void iterateServicesThatDependsOnThis(Consumer<AbstractService<?, ?, ?, ?>> iterator) {
+		List<Class<?>> dependings = ClassUtils.castToGenerics(DependencyBeanUtils.getDirectDependencies(getClass()));
 		iterateDependencyServices(dependings, iterator);
-	}
-	
-	private void iterateDependingServices(Consumer<AbstractService<?, ?, ?, ?>> iterator) {
-		List<Class<?>> dependents = ClassUtils.castToGenerics(DependencyBeanUtils.getDirectDependencies(getClass()));
-		iterateDependencyServices(dependents, iterator);
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -224,41 +237,29 @@ public abstract class AbstractService<E extends AbstractEntity, V extends Abstra
 		}
 	}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependentServicePreInsert(Class<? extends AbstractService> dependentService, Object insertedEntity) {}
+	protected void onServiceThatDependsOnThisPreInsert(Class<? extends AbstractService<?, ?, ?, ?>> dependentService, Object insertedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependentServicePreDelete(Class<? extends AbstractService> dependentService, Object deletedEntity) {}
+	protected void onServiceThatDependsOnThisPreDelete(Class<? extends AbstractService<?, ?, ?, ?>> dependentService, Object deletedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependentServicePreUpdate(Class<? extends AbstractService> dependentService, Object updatedEntity) {}
+	protected void onServiceThatDependsOnThisPreUpdate(Class<? extends AbstractService<?, ?, ?, ?>> dependentService, Object updatedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependingServicePreInsert(Class<? extends AbstractService> dependentService, Object insertedEntity) {}
+	protected void onDependencyServicePreInsert(Class<? extends AbstractService<?, ?, ?, ?>> dependencyService, Object insertedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependingServicePreDelete(Class<? extends AbstractService> dependentService, Object deletedEntity) {}
+	protected void onDependencyServicePreDelete(Class<? extends AbstractService<?, ?, ?, ?>> dependencyService, Object deletedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependingServicePreUpdate(Class<? extends AbstractService> dependentService, Object updatedEntity) {}
+	protected void onDependencyServicePreUpdate(Class<? extends AbstractService<?, ?, ?, ?>> dependencyService, Object updatedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependentServicePostInsert(Class<? extends AbstractService> dependentService, Object insertedEntity) {}
+	protected void onServiceThatDependsOnThisPostInsert(Class<? extends AbstractService<?, ?, ?, ?>> dependentService, Object insertedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependentServicePostDelete(Class<? extends AbstractService> dependentService, Object deletedEntity) {}
+	protected void onServiceThatDependsOnThisPostDelete(Class<? extends AbstractService<?, ?, ?, ?>> dependentService, Object deletedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependentServicePostUpdate(Class<? extends AbstractService> dependentService, Object updatedEntity) {}
+	protected void onServiceThatDependsOnThisPostUpdate(Class<? extends AbstractService<?, ?, ?, ?>> dependentService, Object updatedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependingServicePostInsert(Class<? extends AbstractService> dependentService, Object insertedEntity) {}
+	protected void onDependencyServicePostInsert(Class<? extends AbstractService<?, ?, ?, ?>> dependencyService, Object insertedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependingServicePostDelete(Class<? extends AbstractService> dependentService, Object deletedEntity) {}
+	protected void onDependencyServicePostDelete(Class<? extends AbstractService<?, ?, ?, ?>> dependencyService, Object deletedEntity) {}
 	
-	@SuppressWarnings("rawtypes")
-	protected void onDependingServicePostUpdate(Class<? extends AbstractService> dependentService, Object updatedEntity) {}
+	protected void onDependencyServicePostUpdate(Class<? extends AbstractService<?, ?, ?, ?>> dependencyService, Object updatedEntity) {}
 		
 	protected void onPostInsert(E persisted) {}
 	
