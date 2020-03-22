@@ -18,6 +18,7 @@ import com.jeeasy.engine.resources.dtos.beans.UserLoginBean;
 import com.jeeasy.engine.services.validators.UserAuthorizationValidator;
 import com.jeeasy.engine.settings.SystemCharsetSetting;
 import com.jeeasy.engine.settings.UserAuthTokenExpSetting;
+import com.jeeasy.engine.settings.UserAuthTokenLengthSetting;
 import com.jeeasy.engine.settings.UserAuthTokenRetriesSetting;
 import com.jeeasy.engine.translations.EnumFailuresTranslations;
 import com.jeeasy.engine.utils.business.AuthorizationUtil;
@@ -35,6 +36,9 @@ public class UserAuthorizationService extends AbstractService<UserAuthorization,
 	
 	@Inject
 	private UserAuthTokenRetriesSetting tokenGenRetries;
+	
+	@Inject
+	private UserAuthTokenLengthSetting tokenLength;
 	
 	@Inject
 	private UserAuthTokenExpSetting userAuthTokenExp;
@@ -83,7 +87,7 @@ public class UserAuthorizationService extends AbstractService<UserAuthorization,
 	
 	public UserAuthorization processRawAuthorization(String authorizationHeader) {
 		if (StringUtils.isNonBlankString(authorizationHeader)) {
-			String auth = AuthorizationUtil.getAuthorizationFromHeader(AuthorizationUtil.BEARER_AUTH_PREFIX, authorizationHeader);
+			String auth = AuthorizationUtil.extractAuthorizationFromString(AuthorizationUtil.BEARER_AUTH_PREFIX, authorizationHeader);
 			return getEAO().findByAuthorization(auth);
 		}
 		
@@ -94,7 +98,7 @@ public class UserAuthorizationService extends AbstractService<UserAuthorization,
 		Integer generationTries = tokenGenRetries.getValue();
 		
 		for (int x = 0; x < generationTries; x++) {
-			String auth = StringUtils.generateRandomString(StringUtils.GeneratorAlphabet.BASE64, generationTries);
+			String auth = StringUtils.generateRandomString(StringUtils.GeneratorAlphabet.BASE64, tokenLength.getValue());
 			
 			if (getEAO().findByAuthorization(auth) == null) {
 				return auth;

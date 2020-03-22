@@ -1,6 +1,7 @@
 package com.jeeasy.engine.settings;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,6 +12,8 @@ import java.util.Arrays;
 import javax.annotation.PostConstruct;
 import javax.ejb.Startup;
 import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -42,7 +45,7 @@ public class SettingsManager {
 	
 	@PostConstruct
 	private void postConstruct() {
-		loadSettingsConfigFile();
+		loadSettingsBeans();
 	}
 	
 	public void loadSettingsIfConfigFileChanged() {
@@ -69,7 +72,7 @@ public class SettingsManager {
 	}
 	
 	public void loadSettingsConfigFile() {
-		loadSettingsBeans();
+		//loadSettingsBeans();
 	}
 	
 	private void loadSettingsBeans() {
@@ -85,5 +88,13 @@ public class SettingsManager {
 		MessageDigest digester = MessageDigest.getInstance("MD5");
 		
 		return digester.digest(settingFile);
+	}
+	
+	@Produces
+	public AbstractSetting produceSetting(InjectionPoint ip) {
+		return settingsList.stream()
+				.filter(
+						b -> ((Type) b.getClass()).equals(ip.getType()))
+				.findAny().orElse(null);
 	}
 }

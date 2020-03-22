@@ -6,7 +6,7 @@ import com.jeeasy.engine.database.migration.IMigrationLocation;
 public class DefaultMySQLMigrationLocation implements IMigrationLocation {
 	@Override
 	public String getLocation() {
-		return "sql/mysql";
+		return "sql/jeeasy/mysql";
 	}
 
 	@Override

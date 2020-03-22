@@ -12,9 +12,7 @@ public class AuthorizationCleanupJob implements ITimedJob {
 	@Override
 	public ScheduleExpression getSchedule() {
 		ScheduleExpression scheduleExpression = new ScheduleExpression();
-		//scheduleExpression.hour(16);
-		//scheduleExpression.minute(53);
-		scheduleExpression.second(0);
+		scheduleExpression.minute("*");
 		
 		return scheduleExpression;
 	}

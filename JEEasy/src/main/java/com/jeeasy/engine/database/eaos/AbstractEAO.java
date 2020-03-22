@@ -1,6 +1,7 @@
 package com.jeeasy.engine.database.eaos;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
@@ -66,7 +67,7 @@ public abstract class AbstractEAO<E extends AbstractEntity> {
 	}
 	
 	public void lock(E entity) {
-		entityManager.lock(entity, LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+		entityManager.lock(entity, LockModeType.PESSIMISTIC_WRITE);
 	}
 	
 	public TypedQuery<E> createTypedQuery(String jpql) {
@@ -91,6 +92,10 @@ public abstract class AbstractEAO<E extends AbstractEntity> {
 		} catch (NoResultException ex) {
 			return null;
 		}
+	}
+	
+	public <T> Optional<T> getOptionalSingleResult(TypedQuery<T> query) {
+		return Optional.ofNullable(getSingleResult(query));
 	}
 	
 	public List<E> getResultList(TypedQuery<E> query) {
